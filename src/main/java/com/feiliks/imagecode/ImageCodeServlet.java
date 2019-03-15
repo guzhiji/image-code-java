@@ -64,9 +64,10 @@ public class ImageCodeServlet extends HttpServlet {
             String content = req.getParameter("content");
             if (content == null)
                 throw new IllegalArgumentException("no content");
-            gen.generate(
-                pathInfo.getImageType(), content,
-                readInt(req, "size"), resp);
+            String imageType = pathInfo.getImageType();
+            if (imageType == null)
+                imageType = "png";
+            gen.generate(imageType, content, readInt(req, "size"), resp);
         } catch(IllegalArgumentException ex) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, ex.getMessage());
             LOG.log(Level.INFO, ex.getMessage(), ex);
