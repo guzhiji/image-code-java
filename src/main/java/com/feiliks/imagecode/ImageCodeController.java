@@ -1,5 +1,7 @@
 package com.feiliks.imagecode;
 
+import com.google.zxing.FormatException;
+import com.google.zxing.NotFoundException;
 import org.krysalis.barcode4j.impl.codabar.CodabarBean;
 import org.krysalis.barcode4j.impl.code128.Code128Bean;
 import org.krysalis.barcode4j.impl.code128.EAN128Bean;
@@ -9,14 +11,19 @@ import org.krysalis.barcode4j.impl.upcean.EAN13Bean;
 import org.krysalis.barcode4j.impl.upcean.EAN8Bean;
 import org.krysalis.barcode4j.impl.upcean.UPCABean;
 import org.krysalis.barcode4j.impl.upcean.UPCEBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -76,6 +83,25 @@ public class ImageCodeController {
         if (gen == null)
             throw new IllegalArgumentException("invalid coding type");
         gen.generate(type, content, size, resp);
+    }
+
+    @Autowired
+    private DecoderService decoderService;
+
+    @PostMapping("/decode")
+    @ResponseBody
+    public DecoderService.DecodedMsg decodeImage(HttpServletRequest req) throws IOException, NotFoundException, FormatException {
+        try (InputStream is = req.getInputStream()) {
+            return decoderService.decode(is);
+        }
+    }
+
+    @PostMapping("/decode/multipart")
+    @ResponseBody
+    public DecoderService.DecodedMsg decodeImage(@RequestParam("image") MultipartFile file) throws IOException, NotFoundException, FormatException {
+        try (InputStream is = file.getInputStream()) {
+            return decoderService.decode(is);
+        }
     }
 
 }
